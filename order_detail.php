@@ -22,7 +22,7 @@ if (!$order || (!isAdmin() && $order['user_id'] != $_SESSION['user_id'])) {
 }
 
 // Get order items
-$query = "SELECT oi.*, b.title, b.author FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = :order_id";
+$query = "SELECT oi.*, b.title, b.author, b.image FROM order_items oi JOIN books b ON oi.book_id = b.id WHERE oi.order_id = :order_id";
 $stmt = $db->prepare($query);
 $stmt->bindParam(':order_id', $order_id);
 $stmt->execute();
@@ -125,6 +125,7 @@ $stmt->execute();
                     <table class="table table-bordered">
                         <thead class="table-light">
                             <tr>
+                                <th>Gambar</th>
                                 <th>Buku</th>
                                 <th>Penulis</th>
                                 <th>Harga</th>
@@ -135,6 +136,15 @@ $stmt->execute();
                         <tbody>
                             <?php while ($item = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
                                 <tr>
+                                    <td>
+                                        <?php if ($item['image'] && file_exists($item['image'])): ?>
+                                            <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;">
+                                        <?php else: ?>
+                                            <div style="width: 60px; height: 80px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                                <i class="bi bi-image" style="font-size: 24px; color: #999;"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?php echo htmlspecialchars($item['title']); ?></td>
                                     <td><?php echo htmlspecialchars($item['author']); ?></td>
                                     <td>Rp <?php echo number_format($item['price'], 0, ',', '.'); ?></td>
@@ -145,7 +155,7 @@ $stmt->execute();
                         </tbody>
                         <tfoot>
                             <tr class="table-active">
-                                <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                                <td colspan="5" class="text-end"><strong>Total:</strong></td>
                                 <td><strong>Rp <?php echo number_format($order['total_amount'], 0, ',', '.'); ?></strong></td>
                             </tr>
                         </tfoot>

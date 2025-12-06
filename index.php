@@ -107,6 +107,13 @@ $stmt->execute();
                     <?php while ($book = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
                         <div class="col-md-4 mb-4">
                             <div class="card book-card h-100">
+                                <?php if ($book['image'] && file_exists($book['image'])): ?>
+                                    <img src="<?php echo htmlspecialchars($book['image']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($book['title']); ?>" style="height: 300px; object-fit: cover;">
+                                <?php else: ?>
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                                        <i class="bi bi-image" style="font-size: 64px; color: #ccc;"></i>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="card-body">
                                     <h5 class="card-title"><?php echo htmlspecialchars($book['title']); ?></h5>
                                     <p class="card-text text-muted">oleh <?php echo htmlspecialchars($book['author']); ?></p>

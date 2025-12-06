@@ -1,8 +1,247 @@
 <?php
 require_once 'includes/session.php';
+require_once 'config/database.php';
 requireLogin();
 
-$page_title = 'Dashboard';
+// Only customers can access cart
+if (!isCustomer()) {
+    header("Location: dashboard.php");
+    exit();
+}
+
+$database = new Database();
+$db = $database->getConnection();
+
+$message = '';
+$message_type = '';
+
+// Handle add to cart
+if (isset($_POST['add_to_cart']) && isset($_POST['book_id'])) {
+    $book_id = $_POST['book_id'];
+    $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
+    
+    // Validate quantity
+    if ($quantity < 1) {
+        $message = 'Jumlah harus lebih dari 0';
+        $message_type = 'danger';
+    } else {
+        // Get book details
+        $query = "SELECT * FROM books WHERE id = :id AND stock > 0";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':id', $book_id);
+        $stmt->execute();
+        $book = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$book) {
+            $message = 'Buku tidak ditemukan atau stok habis';
+            $message_type = 'danger';
+        } elseif ($quantity > $book['stock']) {
+            $message = 'Jumlah melebihi stok yang tersedia';
+            $message_type = 'danger';
+        } else {
+            try {
+                $db->beginTransaction();
+                
+                // Get or create pending order
+                $query = "SELECT id FROM orders WHERE user_id = :user_id AND status = 'pending' LIMIT 1";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':user_id', $_SESSION['user_id']);
+                $stmt->execute();
+                $order = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$order) {
+                    // Create new pending order
+                    $query = "INSERT INTO orders (user_id, total_amount, status, created_at) VALUES (:user_id, 0, 'pending', NOW())";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':user_id', $_SESSION['user_id']);
+                    $stmt->execute();
+                    $order_id = $db->lastInsertId();
+                } else {
+                    $order_id = $order['id'];
+                }
+                
+                // Check if book already in order
+                $query = "SELECT id, quantity FROM order_items WHERE order_id = :order_id AND book_id = :book_id";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':order_id', $order_id);
+                $stmt->bindParam(':book_id', $book_id);
+                $stmt->execute();
+                $existing_item = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($existing_item) {
+                    // Update quantity
+                    $new_quantity = $existing_item['quantity'] + $quantity;
+                    if ($new_quantity > $book['stock']) {
+                        throw new Exception('Jumlah melebihi stok yang tersedia');
+                    }
+                    $query = "UPDATE order_items SET quantity = :quantity WHERE id = :id";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':quantity', $new_quantity);
+                    $stmt->bindParam(':id', $existing_item['id']);
+                    $stmt->execute();
+                } else {
+                    // Add new item
+                    $query = "INSERT INTO order_items (order_id, book_id, quantity, price) VALUES (:order_id, :book_id, :quantity, :price)";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(':order_id', $order_id);
+                    $stmt->bindParam(':book_id', $book_id);
+                    $stmt->bindParam(':quantity', $quantity);
+                    $stmt->bindParam(':price', $book['price']);
+                    $stmt->execute();
+                }
+                
+                // Update order total
+                $query = "SELECT SUM(price * quantity) as total FROM order_items WHERE order_id = :order_id";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':order_id', $order_id);
+                $stmt->execute();
+                $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                
+                $query = "UPDATE orders SET total_amount = :total WHERE id = :id";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':total', $total);
+                $stmt->bindParam(':id', $order_id);
+                $stmt->execute();
+                
+                $db->commit();
+                header("Location: cart.php?success=1");
+                exit();
+            } catch (Exception $e) {
+                $db->rollBack();
+                $message = 'Error: ' . $e->getMessage();
+                $message_type = 'danger';
+            }
+        }
+    }
+}
+
+// Show success message if redirected
+if (isset($_GET['success'])) {
+    $message = 'Buku berhasil ditambahkan ke pesanan!';
+    $message_type = 'success';
+}
+
+// Handle remove item
+if (isset($_POST['remove_item']) && isset($_POST['item_id'])) {
+    $item_id = $_POST['item_id'];
+    
+    try {
+        $db->beginTransaction();
+        
+        // Get order_id from item
+        $query = "SELECT order_id FROM order_items WHERE id = :id";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':id', $item_id);
+        $stmt->execute();
+        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($item) {
+            // Delete item
+            $query = "DELETE FROM order_items WHERE id = :id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':id', $item_id);
+            $stmt->execute();
+            
+            // Update order total
+            $query = "SELECT SUM(price * quantity) as total FROM order_items WHERE order_id = :order_id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':order_id', $item['order_id']);
+            $stmt->execute();
+            $total = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+            
+            if ($total === null) {
+                $total = 0;
+            }
+            
+            $query = "UPDATE orders SET total_amount = :total WHERE id = :id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':total', $total);
+            $stmt->bindParam(':id', $item['order_id']);
+            $stmt->execute();
+            
+            // If no items left, delete order
+            $query = "SELECT COUNT(*) as count FROM order_items WHERE order_id = :order_id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':order_id', $item['order_id']);
+            $stmt->execute();
+            $count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            if ($count == 0) {
+                $query = "DELETE FROM orders WHERE id = :id";
+                $stmt = $db->prepare($query);
+                $stmt->bindParam(':id', $item['order_id']);
+                $stmt->execute();
+            }
+        }
+        
+        $db->commit();
+        $message = 'Item berhasil dihapus';
+        $message_type = 'success';
+    } catch (Exception $e) {
+        $db->rollBack();
+        $message = 'Error: ' . $e->getMessage();
+        $message_type = 'danger';
+    }
+}
+
+// Handle checkout
+if (isset($_POST['checkout']) && isset($_POST['order_id'])) {
+    $order_id = $_POST['order_id'];
+    
+    try {
+        // Update order status to processing
+        $query = "UPDATE orders SET status = 'processing' WHERE id = :id AND user_id = :user_id AND status = 'pending'";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':id', $order_id);
+        $stmt->bindParam(':user_id', $_SESSION['user_id']);
+        $stmt->execute();
+        
+        if ($stmt->rowCount() > 0) {
+            // Update book stock
+            $query = "SELECT book_id, quantity FROM order_items WHERE order_id = :order_id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(':order_id', $order_id);
+            $stmt->execute();
+            
+            while ($item = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $update_query = "UPDATE books SET stock = stock - :quantity WHERE id = :book_id";
+                $update_stmt = $db->prepare($update_query);
+                $update_stmt->bindParam(':quantity', $item['quantity']);
+                $update_stmt->bindParam(':book_id', $item['book_id']);
+                $update_stmt->execute();
+            }
+            
+            header("Location: orders.php?success=1");
+            exit();
+        } else {
+            $message = 'Pesanan tidak ditemukan atau sudah diproses';
+            $message_type = 'danger';
+        }
+    } catch (Exception $e) {
+        $message = 'Error: ' . $e->getMessage();
+        $message_type = 'danger';
+    }
+}
+
+// Get pending order and items
+$query = "SELECT * FROM orders WHERE user_id = :user_id AND status = 'pending' LIMIT 1";
+$stmt = $db->prepare($query);
+$stmt->bindParam(':user_id', $_SESSION['user_id']);
+$stmt->execute();
+$pending_order = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$cart_items = [];
+if ($pending_order) {
+    $query = "SELECT oi.*, b.title, b.author, b.stock, b.image FROM order_items oi 
+              JOIN books b ON oi.book_id = b.id 
+              WHERE oi.order_id = :order_id";
+    $stmt = $db->prepare($query);
+    $stmt->bindParam(':order_id', $pending_order['id']);
+    $stmt->execute();
+    $cart_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$page_title = 'Keranjang';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -34,7 +273,7 @@ $page_title = 'Dashboard';
                     </li>
                     <?php if (isCustomer()): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="cart.php"><i class="bi bi-cart"></i> Keranjang</a>
+                            <a class="nav-link active" href="cart.php"><i class="bi bi-cart"></i> Keranjang</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="orders.php"><i class="bi bi-bag"></i> Pesanan Saya</a>
@@ -62,55 +301,83 @@ $page_title = 'Dashboard';
             </div>
 
             <div class="col-md-10 p-4">
-                <h2>Dashboard</h2>
-                <div class="row mt-4">
-                    <div class="col-md-4">
-                        <div class="card text-white bg-primary mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title"><i class="bi bi-person"></i> Role</h5>
-                                <p class="card-text display-6"><?php echo strtoupper($_SESSION['role']); ?></p>
-                            </div>
-                        </div>
+                <h2><i class="bi bi-cart"></i> Keranjang</h2>
+                
+                <?php if ($message): ?>
+                    <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show mt-3" role="alert">
+                        <?php echo htmlspecialchars($message); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (empty($cart_items)): ?>
+                    <div class="alert alert-info mt-4">
+                        <h5>Keranjang Kosong</h5>
+                        <p>Anda belum menambahkan buku ke keranjang. <a href="index.php">Kunjungi halaman utama</a> untuk melihat koleksi buku.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="table-responsive mt-4">
+                        <table class="table table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Gambar</th>
+                                    <th>Buku</th>
+                                    <th>Penulis</th>
+                                    <th>Harga</th>
+                                    <th>Jumlah</th>
+                                    <th>Subtotal</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($cart_items as $item): ?>
+                                    <tr>
+                                        <td>
+                                            <?php if ($item['image'] && file_exists($item['image'])): ?>
+                                                <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;">
+                                            <?php else: ?>
+                                                <div style="width: 60px; height: 80px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                                    <i class="bi bi-image" style="font-size: 24px; color: #999;"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($item['title']); ?></td>
+                                        <td><?php echo htmlspecialchars($item['author']); ?></td>
+                                        <td>Rp <?php echo number_format($item['price'], 0, ',', '.'); ?></td>
+                                        <td><?php echo $item['quantity']; ?></td>
+                                        <td>Rp <?php echo number_format($item['price'] * $item['quantity'], 0, ',', '.'); ?></td>
+                                        <td>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Yakin ingin menghapus item ini?');">
+                                                <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
+                                                <button type="submit" name="remove_item" class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-trash"></i> Hapus
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                            <tfoot class="table-active">
+                                <tr>
+                                    <td colspan="5" class="text-end"><strong>Total:</strong></td>
+                                    <td><strong>Rp <?php echo number_format($pending_order['total_amount'], 0, ',', '.'); ?></strong></td>
+                                    <td>
+                                        <form method="POST">
+                                            <input type="hidden" name="order_id" value="<?php echo $pending_order['id']; ?>">
+                                            <button type="submit" name="checkout" class="btn btn-success">
+                                                <i class="bi bi-check-circle"></i> Checkout
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                     
-                    <?php if (isAdmin() || isStaff()): 
-                        require_once 'config/database.php';
-                        $database = new Database();
-                        $db = $database->getConnection();
-                        
-                        $stmt = $db->query("SELECT COUNT(*) as total FROM books");
-                        $total_books = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-                    ?>
-                        <div class="col-md-4">
-                            <div class="card text-white bg-success mb-3">
-                                <div class="card-body">
-                                    <h5 class="card-title"><i class="bi bi-book"></i> Total Buku</h5>
-                                    <p class="card-text display-6"><?php echo $total_books; ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if (isAdmin()): 
-                        $stmt = $db->query("SELECT COUNT(*) as total FROM users WHERE role='customer'");
-                        $total_customers = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-                    ?>
-                        <div class="col-md-4">
-                            <div class="card text-white bg-info mb-3">
-                                <div class="card-body">
-                                    <h5 class="card-title"><i class="bi bi-people"></i> Total Customer</h5>
-                                    <p class="card-text display-6"><?php echo $total_customers; ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="alert alert-info mt-4">
-                    <h5>Selamat Datang!</h5>
-                    <p>Anda login sebagai <strong><?php echo strtoupper($_SESSION['role']); ?></strong></p>
-                    <p>Silakan gunakan menu di samping untuk mengakses fitur yang tersedia.</p>
-                </div>
+                    <div class="mt-3">
+                        <a href="index.php" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Lanjut Belanja</a>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
