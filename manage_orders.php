@@ -42,6 +42,7 @@ $stmt = $db->query($query);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -56,10 +57,6 @@ $stmt = $db->query($query);
 
     <div class="container my-5">
         <h2><i class="bi bi-box"></i> Kelola Pesanan</h2>
-        
-        <?php if (isset($_GET['success'])): ?>
-            <div class="alert alert-success">Status pesanan berhasil diupdate!</div>
-        <?php endif; ?>
         
         <div class="table-responsive mt-4">
             <table class="table table-bordered table-striped">
@@ -107,5 +104,11 @@ $stmt = $db->query($query);
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/sweetalert-helper.js"></script>
+    <script>
+        <?php if (isset($_GET['success'])): ?>
+            showSuccess('Status pesanan berhasil diupdate!');
+        <?php endif; ?>
+    </script>
 </body>
 </html>

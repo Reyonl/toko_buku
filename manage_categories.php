@@ -66,6 +66,7 @@ if (isset($_GET['edit'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -80,13 +81,6 @@ if (isset($_GET['edit'])) {
 
     <div class="container my-5">
         <h2><i class="bi bi-tags"></i> Kelola Kategori</h2>
-        
-        <?php if (isset($_GET['success'])): ?>
-            <div class="alert alert-success">Kategori berhasil disimpan!</div>
-        <?php endif; ?>
-        <?php if (isset($_GET['deleted'])): ?>
-            <div class="alert alert-success">Kategori berhasil dihapus!</div>
-        <?php endif; ?>
         
         <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#categoryModal" onclick="clearForm()">
             <i class="bi bi-plus-circle"></i> Tambah Kategori
@@ -115,7 +109,7 @@ if (isset($_GET['edit'])) {
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <?php if ($category['total_books'] == 0): ?>
-                                    <a href="manage_categories.php?delete=<?php echo $category['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus kategori ini?')">
+                                    <a href="manage_categories.php?delete=<?php echo $category['id']; ?>" class="btn btn-sm btn-danger delete-category-btn" data-category-name="<?php echo htmlspecialchars($category['name']); ?>">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 <?php endif; ?>
@@ -159,7 +153,39 @@ if (isset($_GET['edit'])) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/sweetalert-helper.js"></script>
     <script>
+        // Show alerts
+        <?php if (isset($_GET['success'])): ?>
+            showSuccess('Kategori berhasil disimpan!');
+        <?php endif; ?>
+        
+        <?php if (isset($_GET['deleted'])): ?>
+            showSuccess('Kategori berhasil dihapus!');
+        <?php endif; ?>
+        
+        // Handle delete with SweetAlert
+        document.querySelectorAll('.delete-category-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const categoryName = this.getAttribute('data-category-name');
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: 'Yakin hapus kategori "' + categoryName + '"?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = this.href;
+                    }
+                });
+            });
+        });
+        
         function clearForm() {
             document.querySelector('input[name="category_id"]').value = '';
             document.querySelector('input[name="name"]').value = '';

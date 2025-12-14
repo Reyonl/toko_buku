@@ -104,7 +104,7 @@ if (isset($_POST['add_to_cart']) && isset($_POST['book_id'])) {
                 $stmt->execute();
                 
                 $db->commit();
-                header("Location: cart.php?success=1");
+                header("Location: cart.php?swal=success&message=" . urlencode('Buku berhasil ditambahkan ke pesanan!'));
                 exit();
             } catch (Exception $e) {
                 $db->rollBack();
@@ -255,6 +255,7 @@ $page_title = 'Keranjang';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -278,6 +279,9 @@ $page_title = 'Keranjang';
                     <?php if (isCustomer()): ?>
                         <li class="nav-item">
                             <a class="nav-link active" href="cart.php"><i class="bi bi-cart"></i> Keranjang</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="wishlist.php"><i class="bi bi-heart"></i> Wishlist</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="orders.php"><i class="bi bi-bag"></i> Pesanan Saya</a>
@@ -307,17 +311,11 @@ $page_title = 'Keranjang';
             <div class="col-md-10 p-4">
                 <h2><i class="bi bi-cart"></i> Keranjang</h2>
                 
-                <?php if ($message): ?>
-                    <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show mt-3" role="alert">
-                        <?php echo htmlspecialchars($message); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
-                
                 <?php if (empty($cart_items)): ?>
-                    <div class="alert alert-info mt-4">
-                        <h5>Keranjang Kosong</h5>
-                        <p>Anda belum menambahkan buku ke keranjang. <a href="index.php">Kunjungi halaman utama</a> untuk melihat koleksi buku.</p>
+                    <div class="text-center py-5 mt-4">
+                        <i class="bi bi-cart-x" style="font-size: 64px; color: #5bc0de;"></i>
+                        <h5 class="mt-3">Keranjang Kosong</h5>
+                        <p class="text-muted">Anda belum menambahkan buku ke keranjang. <a href="index.php">Kunjungi halaman utama</a> untuk melihat koleksi buku.</p>
                     </div>
                 <?php else: ?>
                     <div class="table-responsive mt-4">
@@ -351,7 +349,7 @@ $page_title = 'Keranjang';
                                         <td><?php echo $item['quantity']; ?></td>
                                         <td>Rp <?php echo number_format($item['price'] * $item['quantity'], 0, ',', '.'); ?></td>
                                         <td>
-                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Yakin ingin menghapus item ini?');">
+                                            <form method="POST" style="display: inline;" class="remove-item-form">
                                                 <input type="hidden" name="item_id" value="<?php echo $item['id']; ?>">
                                                 <button type="submit" name="remove_item" class="btn btn-sm btn-danger">
                                                     <i class="bi bi-trash"></i> Hapus
@@ -387,5 +385,62 @@ $page_title = 'Keranjang';
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/sweetalert-helper.js"></script>
+    <script>
+        // Handle remove item with SweetAlert
+        document.querySelectorAll('.remove-item-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Konfirmasi',
+                    text: 'Yakin ingin menghapus item ini?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+        });
+        
+        // Show message from URL
+        <?php if ($message): ?>
+            <?php if ($message_type == 'success'): ?>
+                showSuccess('<?php echo addslashes($message); ?>');
+            <?php elseif ($message_type == 'danger'): ?>
+                showError('<?php echo addslashes($message); ?>');
+            <?php else: ?>
+                showInfo('<?php echo addslashes($message); ?>');
+            <?php endif; ?>
+        <?php endif; ?>
+        
+        // Handle checkout with SweetAlert
+        document.querySelectorAll('form[method="POST"]').forEach(form => {
+            if (form.querySelector('button[name="checkout"]')) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Checkout Pesanan?',
+                        text: 'Apakah Anda yakin ingin melakukan checkout?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Checkout',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>

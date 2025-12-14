@@ -183,6 +183,7 @@ if (isset($_GET['edit'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -197,27 +198,6 @@ if (isset($_GET['edit'])) {
 
     <div class="container my-5">
         <h2><i class="bi bi-book"></i> Kelola Buku</h2>
-        
-        <?php if (isset($_GET['success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Buku berhasil disimpan!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (isset($_GET['deleted'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Buku berhasil dihapus!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if ($message): ?>
-            <div class="alert alert-<?php echo $message_type; ?> alert-dismissible fade show" role="alert">
-                <?php echo htmlspecialchars($message); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
         
         <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#bookModal" onclick="clearForm();">
             <i class="bi bi-plus-circle"></i> Tambah Buku
@@ -267,7 +247,7 @@ if (isset($_GET['edit'])) {
                                 <a href="manage_books.php?edit=<?php echo $book['id']; ?>" class="btn btn-sm btn-warning">
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
-                                <a href="manage_books.php?delete=<?php echo $book['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus buku ini?')">
+                                <a href="manage_books.php?delete=<?php echo $book['id']; ?>" class="btn btn-sm btn-danger delete-book-btn" data-book-title="<?php echo htmlspecialchars($book['title']); ?>">
                                     <i class="bi bi-trash"></i> Hapus
                                 </a>
                             </td>
@@ -353,7 +333,47 @@ if (isset($_GET['edit'])) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/sweetalert-helper.js"></script>
     <script>
+        // Show alerts
+        <?php if (isset($_GET['success'])): ?>
+            showSuccess('Buku berhasil disimpan!');
+        <?php endif; ?>
+        
+        <?php if (isset($_GET['deleted'])): ?>
+            showSuccess('Buku berhasil dihapus!');
+        <?php endif; ?>
+        
+        <?php if ($message): ?>
+            <?php if ($message_type == 'success'): ?>
+                showSuccess('<?php echo addslashes($message); ?>');
+            <?php else: ?>
+                showError('<?php echo addslashes($message); ?>');
+            <?php endif; ?>
+        <?php endif; ?>
+        
+        // Handle delete with SweetAlert
+        document.querySelectorAll('.delete-book-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const bookTitle = this.getAttribute('data-book-title');
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: 'Yakin hapus buku "' + bookTitle + '"?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = this.href;
+                    }
+                });
+            });
+        });
+        
         function clearForm() {
             // Only clear form when adding new book
             document.getElementById('book_id').value = '';

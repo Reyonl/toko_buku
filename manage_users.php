@@ -93,6 +93,7 @@ $stmt = $db->query($query);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -107,26 +108,6 @@ $stmt = $db->query($query);
 
     <div class="container my-5">
         <h2><i class="bi bi-people"></i> Kelola User</h2>
-        
-        <?php if (isset($_GET['success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                User berhasil disimpan!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        <?php if (isset($_GET['deleted'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                User berhasil dihapus!
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (isset($error) && $error): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?php echo htmlspecialchars($error); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
         
         <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#userModal" onclick="clearForm()">
             <i class="bi bi-plus-circle"></i> Tambah User
@@ -166,9 +147,9 @@ $stmt = $db->query($query);
                             <td><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></td>
                             <td>
                                 <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                                    <a href="manage_users.php?delete=<?php echo $user['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus user ini?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                <a href="manage_users.php?delete=<?php echo $user['id']; ?>" class="btn btn-sm btn-danger delete-user-btn" data-user-name="<?php echo htmlspecialchars($user['full_name']); ?>">
+                                    <i class="bi bi-trash"></i>
+                                </a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -227,7 +208,43 @@ $stmt = $db->query($query);
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/sweetalert-helper.js"></script>
     <script>
+        // Show alerts
+        <?php if (isset($_GET['success'])): ?>
+            showSuccess('User berhasil disimpan!');
+        <?php endif; ?>
+        
+        <?php if (isset($_GET['deleted'])): ?>
+            showSuccess('User berhasil dihapus!');
+        <?php endif; ?>
+        
+        <?php if (isset($error) && $error): ?>
+            showError('<?php echo addslashes($error); ?>');
+        <?php endif; ?>
+        
+        // Handle delete with SweetAlert
+        document.querySelectorAll('.delete-user-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const userName = this.getAttribute('data-user-name');
+                Swal.fire({
+                    title: 'Konfirmasi Hapus',
+                    text: 'Yakin hapus user "' + userName + '"?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = this.href;
+                    }
+                });
+            });
+        });
+        
         function clearForm() {
             document.getElementById('full_name').value = '';
             document.getElementById('username').value = '';

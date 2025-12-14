@@ -41,6 +41,9 @@ $page_title = 'Dashboard';
                             <a class="nav-link" href="cart.php"><i class="bi bi-cart"></i> Keranjang</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="wishlist.php"><i class="bi bi-heart"></i> Wishlist</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="orders.php"><i class="bi bi-bag"></i> Pesanan Saya</a>
                         </li>
                     <?php endif; ?>
@@ -67,8 +70,15 @@ $page_title = 'Dashboard';
 
             <div class="col-md-10 p-4">
                 <h2>Dashboard</h2>
+                
+                <?php 
+                require_once 'config/database.php';
+                $database = new Database();
+                $db = $database->getConnection();
+                ?>
+                
                 <div class="row mt-4">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card text-white bg-primary mb-3">
                             <div class="card-body">
                                 <h5 class="card-title"><i class="bi bi-person"></i> Role</h5>
@@ -78,18 +88,18 @@ $page_title = 'Dashboard';
                     </div>
                     
                     <?php if (isAdmin() || isStaff()): 
-                        require_once 'config/database.php';
-                        $database = new Database();
-                        $db = $database->getConnection();
-                        
                         $stmt = $db->query("SELECT COUNT(*) as total FROM books");
                         $total_books = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                        
+                        $stmt = $db->query("SELECT COUNT(*) as total FROM books WHERE stock > 0");
+                        $available_books = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                     ?>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card text-white bg-success mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-book"></i> Total Buku</h5>
                                     <p class="card-text display-6"><?php echo $total_books; ?></p>
+                                    <small>Tersedia: <?php echo $available_books; ?></small>
                                 </div>
                             </div>
                         </div>
@@ -98,27 +108,134 @@ $page_title = 'Dashboard';
                     <?php if (isAdmin()): 
                         $stmt = $db->query("SELECT COUNT(*) as total FROM users WHERE role='customer'");
                         $total_customers = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                        
+                        $stmt = $db->query("SELECT COUNT(*) as total FROM orders WHERE status != 'cancelled'");
+                        $total_orders = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                        
+                        $stmt = $db->query("SELECT SUM(total_amount) as total FROM orders WHERE status = 'completed'");
+                        $revenue_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                        $total_revenue = $revenue_data['total'] ? $revenue_data['total'] : 0;
                     ?>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card text-white bg-info mb-3">
                                 <div class="card-body">
-                                    <h5 class="card-title"><i class="bi bi-people"></i> Total Customer</h5>
+                                    <h5 class="card-title"><i class="bi bi-people"></i> Customer</h5>
                                     <p class="card-text display-6"><?php echo $total_customers; ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="card text-white bg-warning mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-bag"></i> Total Pesanan</h5>
+                                    <p class="card-text display-6"><?php echo $total_orders; ?></p>
                                 </div>
                             </div>
                         </div>
                     <?php endif; ?>
                 </div>
 
-                <div class="alert alert-info mt-4">
-                    <h5>Selamat Datang!</h5>
-                    <p>Anda login sebagai <strong><?php echo strtoupper($_SESSION['role']); ?></strong></p>
-                    <p>Silakan gunakan menu di samping untuk mengakses fitur yang tersedia.</p>
+                <?php if (isAdmin()): ?>
+                    <!-- Revenue Card -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card text-white bg-success mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-currency-dollar"></i> Total Pendapatan</h5>
+                                    <p class="card-text display-5">Rp <?php echo number_format($total_revenue, 0, ',', '.'); ?></p>
+                                    <small>Dari pesanan yang selesai</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <?php
+                            $stmt = $db->query("SELECT COUNT(*) as total FROM orders WHERE status = 'pending'");
+                            $pending_orders = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                            
+                            $stmt = $db->query("SELECT COUNT(*) as total FROM orders WHERE status = 'processing'");
+                            $processing_orders = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                            ?>
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-clock-history"></i> Pesanan Pending</h5>
+                                    <p class="card-text display-6 text-warning"><?php echo $pending_orders; ?></p>
+                                    <small class="text-muted">Processing: <?php echo $processing_orders; ?></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Best Selling Books -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-trophy"></i> Buku Terlaris</h5>
+                                </div>
+                                <div class="card-body">
+                                    <?php
+                                    $best_seller_query = "SELECT b.*, SUM(oi.quantity) as total_sold, c.name as category_name 
+                                                          FROM books b 
+                                                          JOIN order_items oi ON b.id = oi.book_id 
+                                                          JOIN orders o ON oi.order_id = o.id 
+                                                          LEFT JOIN categories c ON b.category_id = c.id
+                                                          WHERE o.status = 'completed' 
+                                                          GROUP BY b.id 
+                                                          ORDER BY total_sold DESC 
+                                                          LIMIT 5";
+                                    $best_seller_stmt = $db->query($best_seller_query);
+                                    $best_sellers = $best_seller_stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    
+                                    if (count($best_sellers) > 0):
+                                    ?>
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Buku</th>
+                                                        <th>Kategori</th>
+                                                        <th>Terjual</th>
+                                                        <th>Harga</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($best_sellers as $bs): ?>
+                                                        <tr>
+                                                            <td>
+                                                                <strong><?php echo htmlspecialchars($bs['title']); ?></strong><br>
+                                                                <small class="text-muted">oleh <?php echo htmlspecialchars($bs['author']); ?></small>
+                                                            </td>
+                                                            <td><?php echo htmlspecialchars($bs['category_name']); ?></td>
+                                                            <td><span class="badge bg-success"><?php echo $bs['total_sold']; ?> unit</span></td>
+                                                            <td>Rp <?php echo number_format($bs['price'], 0, ',', '.'); ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    <?php else: ?>
+                                        <p class="text-muted">Belum ada data penjualan.</p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <div class="card mt-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <div class="card-body">
+                        <h5><i class="bi bi-hand-thumbs-up"></i> Selamat Datang!</h5>
+                        <p class="mb-1">Anda login sebagai <strong><?php echo strtoupper($_SESSION['role']); ?></strong></p>
+                        <p class="mb-0">Silakan gunakan menu di samping untuk mengakses fitur yang tersedia.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/sweetalert-helper.js"></script>
 </body>
 </html>
