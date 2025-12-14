@@ -140,9 +140,9 @@ try {
     $rating_stmt->bindParam(':book_id', $book_id);
     $rating_stmt->execute();
     $rating_data = $rating_stmt->fetch(PDO::FETCH_ASSOC);
-    if ($rating_data) {
-        $avg_rating = round($rating_data['avg_rating'], 1);
-        $total_reviews = $rating_data['total'];
+    if ($rating_data && $rating_data['avg_rating'] !== null) {
+        $avg_rating = round((float)$rating_data['avg_rating'], 1);
+        $total_reviews = (int)$rating_data['total'];
     }
 } catch (Exception $e) {
     // Table doesn't exist yet, will be created later
@@ -236,8 +236,11 @@ $related_books = $related_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php if ($avg_rating > 0): ?>
                     <div class="mb-3">
                         <div class="rating-stars">
-                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <i class="bi bi-star<?php echo $i <= round($avg_rating) ? '-fill' : ''; ?>"></i>
+                            <?php 
+                            $rounded_rating = round((float)$avg_rating);
+                            for ($i = 1; $i <= 5; $i++): 
+                            ?>
+                                <i class="bi bi-star<?php echo $i <= $rounded_rating ? '-fill' : ''; ?>"></i>
                             <?php endfor; ?>
                         </div>
                         <span class="ms-2"><?php echo $avg_rating; ?> (<?php echo $total_reviews; ?> review<?php echo $total_reviews > 1 ? 's' : ''; ?>)</span>
