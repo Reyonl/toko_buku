@@ -352,8 +352,11 @@ if (isset($_GET['edit'])) {
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> ReyBookstore</a>
-            <div class="ms-auto">
-                <a href="dashboard.php" class="btn btn-outline-light me-2">Dashboard</a>
+            <div class="ms-auto d-flex align-items-center">
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <i class="bi bi-moon-fill" id="themeIcon"></i>
+                </button>
+                <a href="dashboard.php" class="btn btn-outline-light me-2 ms-2">Dashboard</a>
                 <a href="logout.php" class="btn btn-outline-light">Logout</a>
             </div>
         </div>
@@ -370,7 +373,7 @@ if (isset($_GET['edit'])) {
             <table class="table table-bordered table-striped">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
+                        <!-- <th>ID</th> -->
                         <th>Gambar</th>
                         <th>Judul</th>
                         <th>Penulis</th>
@@ -383,7 +386,7 @@ if (isset($_GET['edit'])) {
                 <tbody>
                     <?php while ($book = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
-                            <td><?php echo $book['id']; ?></td>
+                            <!-- <td><?php echo $book['id']; ?></td> -->
                             <td>
                                 <?php if ($book['image'] && file_exists($book['image'])): ?>
                                     <img src="<?php echo htmlspecialchars($book['image']); ?>" alt="<?php echo htmlspecialchars($book['title']); ?>" style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;">
@@ -841,6 +844,7 @@ if (isset($_GET['edit'])) {
             });
         }
     </script>
+    <script src="assets/js/dark-mode.js"></script>
     <?php if ($edit_book): ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

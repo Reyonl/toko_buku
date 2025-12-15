@@ -45,8 +45,11 @@ $stmt->execute();
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> ReyBookstore</a>
-            <div class="ms-auto">
-                <a href="dashboard.php" class="btn btn-outline-light me-2">Dashboard</a>
+            <div class="ms-auto d-flex align-items-center">
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <i class="bi bi-moon-fill" id="themeIcon"></i>
+                </button>
+                <a href="dashboard.php" class="btn btn-outline-light me-2 ms-2">Dashboard</a>
                 <a href="logout.php" class="btn btn-outline-light">Logout</a>
             </div>
         </div>
@@ -172,5 +175,6 @@ $stmt->execute();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/sweetalert-helper.js"></script>
+    <script src="assets/js/dark-mode.js"></script>
 </body>
 </html>

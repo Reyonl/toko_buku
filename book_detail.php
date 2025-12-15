@@ -187,16 +187,23 @@ $related_books = $related_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <?php if (isLoggedIn()): ?>
-                        <li class="nav-item"><a class="nav-link" href="cart.php"><i class="bi bi-cart"></i> Keranjang</a></li>
+                        <?php if (isCustomer()): ?>
+                            <li class="nav-item"><a class="nav-link" href="cart.php"><i class="bi bi-cart"></i> Keranjang</a></li>
+                        <?php endif; ?>
                         <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
                         <li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>
                     <?php else: ?>
                         <li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
                         <li class="nav-item"><a class="nav-link" href="register.php">Register</a></li>
                     <?php endif; ?>
+                    <li class="nav-item">
+                        <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                            <i class="bi bi-moon-fill" id="themeIcon"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -269,7 +276,7 @@ $related_books = $related_stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title mb-3">Beli Buku Ini</h5>
-                            <?php if (isLoggedIn()): ?>
+                            <?php if (isLoggedIn() && isCustomer()): ?>
                                 <form method="POST" action="cart.php" class="d-flex gap-2 mb-2">
                                     <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
                                     <input type="number" name="quantity" value="1" min="1" max="<?php echo $book['stock']; ?>" class="form-control" style="max-width: 100px;">
@@ -288,7 +295,7 @@ $related_books = $related_stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </a>
                                     <?php endif; ?>
                                 </div>
-                            <?php else: ?>
+                            <?php elseif (!isLoggedIn()): ?>
                                 <a href="login.php" class="btn btn-primary w-100">
                                     <i class="bi bi-box-arrow-in-right"></i> Login untuk Membeli
                                 </a>
@@ -429,6 +436,7 @@ $related_books = $related_stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endif; ?>
         <?php endif; ?>
     </script>
+    <script src="assets/js/dark-mode.js"></script>
 </body>
 </html>
 

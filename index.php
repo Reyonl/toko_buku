@@ -82,6 +82,8 @@ $stmt->execute();
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>ReyBookstore - Toko Buku Online</title>
+    <link rel="shortcut icon" href="assets/images/bookshop.gif" type="image/gif">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Elms+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -144,11 +146,12 @@ $stmt->execute();
 
         /* Sidebar Enhancement */
         .sidebar-category {
-            background: white;
+            background: var(--card-bg);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px var(--card-shadow);
             margin-bottom: 20px;
+            border: 1px solid var(--border-color);
         }
         .sidebar-category h5 {
             color: #2a5298;
@@ -176,11 +179,12 @@ $stmt->execute();
 
         /* Search Bar Enhancement */
         .search-section {
-            background: white;
+            background: var(--card-bg);
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px var(--card-shadow);
             margin-bottom: 30px;
+            border: 1px solid var(--border-color);
         }
         .form-control, .form-select {
             border-radius: 10px;
@@ -195,11 +199,11 @@ $stmt->execute();
         /* Book Card Enhancement */
         .book-card {
             transition: all 0.3s ease;
-            border: none;
+            border: 1px solid var(--border-color);
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            background: white;
+            box-shadow: 0 2px 10px var(--card-shadow);
+            background: var(--card-bg);
         }
         .book-card:hover {
             transform: translateY(-10px);
@@ -300,9 +304,10 @@ $stmt->execute();
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            background: white;
+            background: var(--card-bg);
             border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px var(--card-shadow);
+            border: 1px solid var(--border-color);
         }
         .empty-state i {
             font-size: 64px;
@@ -323,11 +328,13 @@ $stmt->execute();
 
         /* Stats Section */
         .stats-info {
-            background: white;
+            background: var(--card-bg);
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px var(--card-shadow);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
 
         /* Responsive */
@@ -349,11 +356,11 @@ $stmt->execute();
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                     <?php if (isLoggedIn()): ?>
-                        <li class="nav-item"><a class="nav-link" href="cart.php"><i class="bi bi-cart"></i> Keranjang</a></li>
                         <?php if (isCustomer()): ?>
+                            <li class="nav-item"><a class="nav-link" href="cart.php"><i class="bi bi-cart"></i> Keranjang</a></li>
                             <li class="nav-item"><a class="nav-link" href="wishlist.php"><i class="bi bi-heart"></i> Wishlist</a></li>
                         <?php endif; ?>
                         <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
@@ -362,6 +369,11 @@ $stmt->execute();
                         <li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
                         <li class="nav-item"><a class="nav-link" href="register.php">Register</a></li>
                     <?php endif; ?>
+                    <li class="nav-item">
+                        <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                            <i class="bi bi-moon-fill" id="themeIcon"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -466,7 +478,7 @@ $stmt->execute();
                                             <a href="book_detail.php?id=<?php echo $book['id']; ?>" class="btn btn-outline-primary">
                                                 <i class="bi bi-eye"></i> Lihat Detail
                                             </a>
-                                            <?php if (isLoggedIn()): ?>
+                                            <?php if (isLoggedIn() && isCustomer()): ?>
                                                 <form method="POST" action="cart.php" class="mt-2">
                                                     <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
                                                     <div class="input-group mb-2">
@@ -477,7 +489,7 @@ $stmt->execute();
                                                         <i class="bi bi-cart-plus"></i> Tambah ke Keranjang
                                                     </button>
                                                 </form>
-                                            <?php else: ?>
+                                            <?php elseif (!isLoggedIn()): ?>
                                                 <a href="login.php" class="btn btn-secondary w-100">
                                                     <i class="bi bi-box-arrow-in-right"></i> Login untuk Membeli
                                                 </a>
@@ -533,5 +545,6 @@ $stmt->execute();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/sweetalert-helper.js"></script>
+    <script src="assets/js/dark-mode.js"></script>
 </body>
 </html>

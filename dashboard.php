@@ -45,16 +45,25 @@ $page_title = 'Dashboard';
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> ReyBookstore</a>
-            <span class="navbar-text text-white me-3">
-                Halo, <?php echo htmlspecialchars($_SESSION['full_name']); ?>
-            </span>
-            <a href="logout.php" class="btn btn-outline-light">Logout</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <span class="navbar-text text-white me-3 d-none d-lg-block">
+                    Halo, <?php echo htmlspecialchars($_SESSION['full_name']); ?>
+                </span>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <i class="bi bi-moon-fill" id="themeIcon"></i>
+                </button>
+                <a href="logout.php" class="btn btn-outline-light ms-2">Logout</a>
+            </div>
         </div>
     </nav>
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-2 bg-light p-4" style="min-height: 100vh;">
+            <!-- Sidebar - Hidden on mobile, shown on desktop -->
+            <div class="col-lg-2 col-md-3 d-none d-md-block bg-light p-4 sidebar-menu" style="min-height: 100vh;">
                 <h5>Menu</h5>
                 <ul class="nav flex-column">
                     <li class="nav-item">
@@ -92,7 +101,7 @@ $page_title = 'Dashboard';
                 </ul>
             </div>
 
-            <div class="col-md-10 p-4">
+            <div class="col-lg-10 col-md-9 p-3 p-md-4">
                 <h2>Dashboard</h2>
                 
                 <?php 
@@ -102,7 +111,7 @@ $page_title = 'Dashboard';
                 ?>
                 
                 <div class="row mt-4">
-                    <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                         <div class="card text-white bg-primary mb-3">
                             <div class="card-body">
                                 <h5 class="card-title"><i class="bi bi-person"></i> Role</h5>
@@ -130,7 +139,7 @@ $page_title = 'Dashboard';
                         $stmt = $db->query("SELECT SUM(stock) as total FROM books");
                         $total_stock = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?: 0;
                     ?>
-                        <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                             <div class="card text-white bg-success mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-book"></i> Total Buku</h5>
@@ -140,7 +149,7 @@ $page_title = 'Dashboard';
                             </div>
                         </div>
                         
-                        <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                             <div class="card text-white bg-info mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-box-seam"></i> Total Stok</h5>
@@ -150,7 +159,7 @@ $page_title = 'Dashboard';
                             </div>
                         </div>
                         
-                        <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                             <div class="card text-white bg-warning mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Stok Rendah</h5>
@@ -160,7 +169,7 @@ $page_title = 'Dashboard';
                             </div>
                         </div>
                         
-                        <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                             <div class="card text-white bg-danger mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-x-circle"></i> Stok Habis</h5>
@@ -182,7 +191,7 @@ $page_title = 'Dashboard';
                         $revenue_data = $stmt->fetch(PDO::FETCH_ASSOC);
                         $total_revenue = $revenue_data['total'] ? $revenue_data['total'] : 0;
                     ?>
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                             <div class="card text-white bg-info mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-people"></i> Customer</h5>
@@ -191,7 +200,7 @@ $page_title = 'Dashboard';
                             </div>
                         </div>
                         
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                             <div class="card text-white bg-warning mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-bag"></i> Total Pesanan</h5>
@@ -205,7 +214,7 @@ $page_title = 'Dashboard';
                 <?php if (isAdmin()): ?>
                     <!-- Revenue Card -->
                     <div class="row mt-3">
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <div class="card text-white bg-success mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-currency-dollar"></i> Total Pendapatan</h5>
@@ -215,7 +224,7 @@ $page_title = 'Dashboard';
                             </div>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <?php
                             $stmt = $db->query("SELECT COUNT(*) as total FROM orders WHERE status = 'pending'");
                             $pending_orders = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
@@ -294,7 +303,7 @@ $page_title = 'Dashboard';
                     <!-- Stock Management Section -->
                     <div class="row mt-4">
                         <!-- Low Stock Books -->
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <div class="card border-warning">
                                 <div class="card-header bg-warning text-dark">
                                     <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Buku dengan Stok Rendah</h5>
@@ -365,7 +374,7 @@ $page_title = 'Dashboard';
                         </div>
                         
                         <!-- Out of Stock Books -->
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12 mb-3">
                             <div class="card border-danger">
                                 <div class="card-header bg-danger text-white">
                                     <h5 class="mb-0"><i class="bi bi-x-circle-fill"></i> Buku Stok Habis</h5>
@@ -465,5 +474,6 @@ $page_title = 'Dashboard';
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/sweetalert-helper.js"></script>
+    <script src="assets/js/dark-mode.js"></script>
 </body>
 </html>

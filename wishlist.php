@@ -60,13 +60,16 @@ $wishlist_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <span class="navbar-text text-white me-3">
                 Halo, <?php echo htmlspecialchars($_SESSION['full_name']); ?>
             </span>
-            <a href="logout.php" class="btn btn-outline-light">Logout</a>
+            <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+            </button>
+            <a href="logout.php" class="btn btn-outline-light ms-2">Logout</a>
         </div>
     </nav>
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-2 bg-light p-4" style="min-height: 100vh;">
+            <div class="col-md-2 bg-light p-4 sidebar-menu" style="min-height: 100vh;">
                 <h5>Menu</h5>
                 <ul class="nav flex-column">
                     <li class="nav-item">
@@ -150,6 +153,7 @@ $wishlist_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/sweetalert-helper.js"></script>
+    <script src="assets/js/dark-mode.js"></script>
     <script>
         <?php if (isset($_GET['removed'])): ?>
             showSuccess('Buku berhasil dihapus dari wishlist!');
