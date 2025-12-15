@@ -59,7 +59,7 @@ if (isset($_GET['edit'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Kategori - Toko Buku</title>
+    <title>Kelola Kategori - ReyBookstore</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Elms+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -71,7 +71,7 @@ if (isset($_GET['edit'])) {
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> BookStore</a>
+            <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> ReyBookstore</a>
             <div class="ms-auto">
                 <a href="dashboard.php" class="btn btn-outline-light me-2">Dashboard</a>
                 <a href="logout.php" class="btn btn-outline-light">Logout</a>

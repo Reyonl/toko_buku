@@ -164,7 +164,7 @@ $related_books = $related_stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($book['title']); ?> - Toko Buku</title>
+    <title><?php echo htmlspecialchars($book['title']); ?> - ReyBookstore</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Elms+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -182,7 +182,7 @@ $related_books = $related_stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> BookStore</a>
+            <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> ReyBookstore</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -410,7 +410,7 @@ $related_books = $related_stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <footer class="bg-dark text-white text-center py-3 mt-5">
-        <p>&copy; 2024 Toko Buku Online. All rights reserved.</p>
+        <p>&copy; 2024 ReyBookstore. All rights reserved.</p>
         <p>by Reyonl.</p>
     </footer>
 

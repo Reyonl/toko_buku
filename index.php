@@ -78,7 +78,10 @@ $stmt->execute();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toko Buku Online</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>ReyBookstore - Toko Buku Online</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Elms+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -87,16 +90,261 @@ $stmt->execute();
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        .book-card { transition: transform 0.3s; }
-        .book-card:hover { transform: translateY(-5px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .navbar-brand { font-weight: bold; font-size: 1.5rem; }
-        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 0; }
+        /* Navbar Enhancement */
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .nav-link {
+            transition: all 0.3s;
+            border-radius: 5px;
+            margin: 0 5px;
+        }
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 1rem;
+        }
+        .hero .lead {
+            font-size: 1.3rem;
+            opacity: 0.95;
+        }
+
+        /* Sidebar Enhancement */
+        .sidebar-category {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .sidebar-category h5 {
+            color: #2a5298;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .list-group-item {
+            border: none;
+            border-radius: 8px !important;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: #667eea;
+            transform: translateX(5px);
+        }
+        .list-group-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-left-color: #764ba2;
+        }
+
+        /* Search Bar Enhancement */
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        /* Book Card Enhancement */
+        .book-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: white;
+        }
+        .book-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        .book-card .card-img-top {
+            transition: transform 0.5s;
+            border-radius: 0;
+        }
+        .book-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        .book-card .card-body {
+            padding: 20px;
+        }
+        .book-card .card-title {
+            color: #2a5298;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            min-height: 50px;
+        }
+        .book-card .card-title:hover {
+            color: #667eea;
+        }
+        .book-card .badge {
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-weight: 500;
+        }
+        .book-card .card-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+            min-height: 40px;
+        }
+        .book-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin: 15px 0;
+        }
+        .stock-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: #d4edda;
+            color: #155724;
+        }
+        .book-card .card-footer {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 15px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-outline-primary {
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        /* Pagination Enhancement */
+        .pagination .page-link {
+            border-radius: 8px;
+            margin: 0 3px;
+            border: 2px solid #e9ecef;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+        .pagination .page-link:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .empty-state i {
+            font-size: 64px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        /* Footer Enhancement */
+        footer {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+            margin-top: 60px;
+            padding: 30px 0;
+        }
+        footer p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        /* Stats Section */
+        .stats-info {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .hero .lead {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> BookStore</a>
+            <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> ReyBookstore</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -120,49 +368,69 @@ $stmt->execute();
     </nav>
 
     <div class="hero text-center">
-        <div class="container">
-            <h1 class="display-4">Selamat Datang di Toko Buku Online</h1>
-            <p class="lead">Temukan buku favorit Anda dengan harga terbaik</p>
+        <div class="container hero-content">
+            <h1 class="display-4"><i class="bi bi-book-heart"></i> Selamat Datang di ReyBookstore</h1>
+            <p class="lead">Temukan ribuan buku favorit Anda dengan harga terbaik dan kualitas terjamin</p>
+            <div class="mt-4">
+                <a href="#books" class="btn btn-light btn-lg">
+                    <i class="bi bi-arrow-down-circle"></i> Jelajahi Koleksi
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="container my-5">
+    <div class="container my-5" id="books">
         <div class="row">
             <div class="col-md-3">
-                <h5>Kategori</h5>
-                <div class="list-group">
-                    <a href="index.php" class="list-group-item list-group-item-action <?php echo !$category_filter ? 'active' : ''; ?>">Semua Kategori</a>
-                    <?php while ($cat = $stmt_cat->fetch(PDO::FETCH_ASSOC)): ?>
-                        <a href="index.php?category=<?php echo $cat['id']; ?>" class="list-group-item list-group-item-action <?php echo $category_filter == $cat['id'] ? 'active' : ''; ?>">
-                            <?php echo htmlspecialchars($cat['name']); ?>
+                <div class="sidebar-category">
+                    <h5><i class="bi bi-grid-3x3-gap"></i> Kategori</h5>
+                    <div class="list-group">
+                        <a href="index.php" class="list-group-item list-group-item-action <?php echo !$category_filter ? 'active' : ''; ?>">
+                            <i class="bi bi-collection"></i> Semua Kategori
                         </a>
-                    <?php endwhile; ?>
+                        <?php 
+                        // Reset pointer untuk fetch ulang
+                        $stmt_cat->execute();
+                        while ($cat = $stmt_cat->fetch(PDO::FETCH_ASSOC)): 
+                        ?>
+                            <a href="index.php?category=<?php echo $cat['id']; ?>" class="list-group-item list-group-item-action <?php echo $category_filter == $cat['id'] ? 'active' : ''; ?>">
+                                <i class="bi bi-bookmark"></i> <?php echo htmlspecialchars($cat['name']); ?>
+                            </a>
+                        <?php endwhile; ?>
+                    </div>
                 </div>
             </div>
 
             <div class="col-md-9">
-                <form method="GET" class="mb-4">
-                    <?php if ($category_filter): ?>
-                        <input type="hidden" name="category" value="<?php echo htmlspecialchars($category_filter); ?>">
-                    <?php endif; ?>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-8">
-                            <input type="text" name="search" class="form-control" placeholder="Cari buku..." value="<?php echo htmlspecialchars($search); ?>">
+                <div class="search-section">
+                    <form method="GET">
+                        <?php if ($category_filter): ?>
+                            <input type="hidden" name="category" value="<?php echo htmlspecialchars($category_filter); ?>">
+                        <?php endif; ?>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" name="search" class="form-control border-start-0" placeholder="Cari buku berdasarkan judul atau penulis..." value="<?php echo htmlspecialchars($search); ?>">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="sort" class="form-select" onchange="this.form.submit()">
+                                    <option value="newest" <?php echo $sort == 'newest' ? 'selected' : ''; ?>><i class="bi bi-clock"></i> Terbaru</option>
+                                    <option value="price_low" <?php echo $sort == 'price_low' ? 'selected' : ''; ?>>Harga: Rendah ke Tinggi</option>
+                                    <option value="price_high" <?php echo $sort == 'price_high' ? 'selected' : ''; ?>>Harga: Tinggi ke Rendah</option>
+                                    <option value="title" <?php echo $sort == 'title' ? 'selected' : ''; ?>>Judul A-Z</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <select name="sort" class="form-select" onchange="this.form.submit()">
-                                <option value="newest" <?php echo $sort == 'newest' ? 'selected' : ''; ?>>Terbaru</option>
-                                <option value="price_low" <?php echo $sort == 'price_low' ? 'selected' : ''; ?>>Harga: Rendah ke Tinggi</option>
-                                <option value="price_high" <?php echo $sort == 'price_high' ? 'selected' : ''; ?>>Harga: Tinggi ke Rendah</option>
-                                <option value="title" <?php echo $sort == 'title' ? 'selected' : ''; ?>>Judul A-Z</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
-                </form>
+                    </form>
+                </div>
 
                 <?php if ($total_books > 0): ?>
-                    <p class="text-muted mb-3">Menampilkan <?php echo $offset + 1; ?>-<?php echo min($offset + $per_page, $total_books); ?> dari <?php echo $total_books; ?> buku</p>
+                    <div class="stats-info">
+                        <i class="bi bi-info-circle text-primary"></i> 
+                        Menampilkan <strong><?php echo $offset + 1; ?>-<?php echo min($offset + $per_page, $total_books); ?></strong> dari <strong><?php echo $total_books; ?></strong> buku
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($total_books > 0): ?>
@@ -179,17 +447,21 @@ $stmt->execute();
                                             </div>
                                         <?php endif; ?>
                                     </a>
-                                    <div class="card-body">
+                                    <div class="card-body d-flex flex-column">
                                         <a href="book_detail.php?id=<?php echo $book['id']; ?>" class="text-decoration-none text-dark">
                                             <h5 class="card-title"><?php echo htmlspecialchars($book['title']); ?></h5>
                                         </a>
-                                        <p class="card-text text-muted">oleh <?php echo htmlspecialchars($book['author']); ?></p>
-                                        <span class="badge bg-info"><?php echo htmlspecialchars($book['category_name']); ?></span>
-                                        <p class="card-text mt-2"><?php echo substr(htmlspecialchars($book['description']), 0, 100); ?>...</p>
-                                        <h4 class="text-primary">Rp <?php echo number_format($book['price'], 0, ',', '.'); ?></h4>
-                                        <p class="text-muted">Stok: <?php echo $book['stock']; ?></p>
+                                        <p class="card-text text-muted small mb-2">
+                                            <i class="bi bi-person"></i> oleh <strong><?php echo htmlspecialchars($book['author']); ?></strong>
+                                        </p>
+                                        <span class="badge bg-info mb-2" style="width: fit-content;"><?php echo htmlspecialchars($book['category_name'] ?: 'Tidak ada kategori'); ?></span>
+                                        <p class="card-text small text-muted flex-grow-1"><?php echo substr(htmlspecialchars($book['description'] ?: 'Tidak ada deskripsi'), 0, 100); ?><?php echo strlen($book['description'] ?: '') > 100 ? '...' : ''; ?></p>
+                                        <div class="book-price">Rp <?php echo number_format($book['price'], 0, ',', '.'); ?></div>
+                                        <span class="stock-badge">
+                                            <i class="bi bi-check-circle"></i> Stok: <?php echo $book['stock']; ?> unit
+                                        </span>
                                     </div>
-                                    <div class="card-footer">
+                                    <div class="card-footer bg-transparent border-top-0">
                                         <div class="d-grid gap-2">
                                             <a href="book_detail.php?id=<?php echo $book['id']; ?>" class="btn btn-outline-primary">
                                                 <i class="bi bi-eye"></i> Lihat Detail
@@ -197,11 +469,18 @@ $stmt->execute();
                                             <?php if (isLoggedIn()): ?>
                                                 <form method="POST" action="cart.php" class="mt-2">
                                                     <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
-                                                    <input type="number" name="quantity" value="1" min="1" max="<?php echo $book['stock']; ?>" class="form-control mb-2">
-                                                    <button type="submit" name="add_to_cart" class="btn btn-primary w-100"><i class="bi bi-cart-plus"></i> Tambah ke Keranjang</button>
+                                                    <div class="input-group mb-2">
+                                                        <span class="input-group-text"><i class="bi bi-123"></i></span>
+                                                        <input type="number" name="quantity" value="1" min="1" max="<?php echo $book['stock']; ?>" class="form-control" placeholder="Jumlah">
+                                                    </div>
+                                                    <button type="submit" name="add_to_cart" class="btn btn-primary w-100">
+                                                        <i class="bi bi-cart-plus"></i> Tambah ke Keranjang
+                                                    </button>
                                                 </form>
                                             <?php else: ?>
-                                                <a href="login.php" class="btn btn-secondary w-100">Login untuk Membeli</a>
+                                                <a href="login.php" class="btn btn-secondary w-100">
+                                                    <i class="bi bi-box-arrow-in-right"></i> Login untuk Membeli
+                                                </a>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -235,9 +514,13 @@ $stmt->execute();
                         </nav>
                     <?php endif; ?>
                 <?php else: ?>
-                    <div class="text-center py-5">
-                        <i class="bi bi-info-circle" style="font-size: 48px; color: #5bc0de;"></i>
-                        <p class="mt-3 text-muted">Tidak ada buku yang ditemukan.</p>
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h4 class="mt-3">Tidak ada buku yang ditemukan</h4>
+                        <p class="text-muted">Coba ubah kata kunci pencarian atau pilih kategori lain</p>
+                        <a href="index.php" class="btn btn-primary mt-3">
+                            <i class="bi bi-arrow-left"></i> Kembali ke Semua Buku
+                        </a>
                     </div>
                 <?php endif; ?>
             </div>

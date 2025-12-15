@@ -21,7 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_book'])) {
     $author = $_POST['author'];
     $category_id = $_POST['category_id'];
     $description = $_POST['description'];
-    $price = $_POST['price'];
+    // Format price - remove dots and convert to number
+    $price = str_replace('.', '', $_POST['price']);
+    $price = preg_replace('/[^0-9]/', '', $price); // Remove non-numeric characters
     $stock = $_POST['stock'];
     
     // Validation
@@ -337,7 +339,7 @@ if (isset($_GET['edit'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Buku - Toko Buku</title>
+    <title>Kelola Buku - ReyBookstore</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Elms+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -349,7 +351,7 @@ if (isset($_GET['edit'])) {
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> BookStore</a>
+            <a class="navbar-brand" href="index.php"><i class="bi bi-book"></i> ReyBookstore</a>
             <div class="ms-auto">
                 <a href="dashboard.php" class="btn btn-outline-light me-2">Dashboard</a>
                 <a href="logout.php" class="btn btn-outline-light">Logout</a>
@@ -507,8 +509,12 @@ if (isset($_GET['edit'])) {
                             </div>
                             
                             <div class="col-md-3 mb-3">
-                                <label class="form-label">Harga (Rp) <span class="text-danger">*</span></label>
-                                <input type="number" name="price" id="price" class="form-control" value="<?php echo $edit_book ? $edit_book['price'] : ''; ?>" min="0" step="100" required>
+                                <label class="form-label">Harga <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">Rp</span>
+                                    <input type="text" name="price" id="price" class="form-control" value="<?php echo $edit_book ? number_format($edit_book['price'], 0, ',', '.') : ''; ?>" placeholder="0" required>
+                                </div>
+                                <small class="text-muted">Format: 100000 atau 100.000</small>
                             </div>
                             
                             <div class="col-md-3 mb-3">
@@ -543,6 +549,48 @@ if (isset($_GET['edit'])) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/sweetalert-helper.js"></script>
+    <script>
+        // Format Rupiah untuk input harga
+        document.addEventListener('DOMContentLoaded', function() {
+            const priceInput = document.getElementById('price');
+            if (priceInput) {
+                // Format saat input
+                priceInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/[^0-9]/g, '');
+                    if (value) {
+                        value = parseInt(value).toLocaleString('id-ID');
+                        e.target.value = value;
+                    }
+                });
+                
+                // Format saat blur (ketika keluar dari input)
+                priceInput.addEventListener('blur', function(e) {
+                    let value = e.target.value.replace(/[^0-9]/g, '');
+                    if (value) {
+                        value = parseInt(value).toLocaleString('id-ID');
+                        e.target.value = value;
+                    }
+                });
+                
+                // Format saat focus (ketika masuk ke input)
+                priceInput.addEventListener('focus', function(e) {
+                    let value = e.target.value.replace(/[^0-9]/g, '');
+                    if (value) {
+                        e.target.value = value;
+                    }
+                });
+            }
+        });
+        
+        // Format price sebelum submit
+        document.getElementById('bookForm')?.addEventListener('submit', function(e) {
+            const priceInput = document.getElementById('price');
+            if (priceInput) {
+                // Remove dots before submit
+                priceInput.value = priceInput.value.replace(/\./g, '');
+            }
+        });
+    </script>
     <script>
         // Show alerts
         <?php if (isset($_GET['success'])): ?>
